@@ -15,6 +15,9 @@ git clone https://github.com/mohamadsalama102/itsparkTask.git
     "DefaultConnection": "Your_Connection_String"
   }
 }
+
+dotnet ef database update
+
 1. إنشاء مشروع Google Cloud Platform:
 قم بزيارة Google Cloud Console.
 قم بتسجيل الدخول باستخدام حساب Google الخاص بك أو قم بإنشاء واحد إذا لم يكن لديك.
