@@ -1,0 +1,79 @@
+﻿@using itsparkTask.Models.EmailViewModels;
+@{
+    ViewData["Title"] = "Emails";
+} 
+<!-- /.card -->
+<div class="card mb-4">
+    <div class="card-header border-0">
+        <h3 class="card-title"><a class="btn btn-primary" asp-action="SendEmail">Send Email</a></h3>
+    </div>
+    <div class="card-header border-0  p-1 ">
+        <h2 class="card-title">Inbox</h2>
+        <div class="card-tools">
+            <a href="#" class="btn btn-tool btn-sm">
+                <i class="bi bi-list"></i>
+            </a>
+        </div>
+    </div>
+    <div class="card-header border-0 p-0">
+        <div>
+            <a id="refreshData" href="#" class="btn btn-tool btn-sm">
+                <i class="bi bi-arrow-repeat"></i>
+            </a>
+        </div>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <div id="loading" style="display:none; text-align:center;">
+            <div class="spinner-border text-primary" role="status"> <span class="visually-hidden">Loading...</span> </div>
+        </div>
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" /></th>
+                    <th><input type="radio" /></th>
+                    <th><i class="bi bi-flag"></i></th>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="emailTable">
+                @foreach (EmailViewModel email in ViewBag.Emails)
+                {
+                    <tr>
+                        <td><input type="checkbox" /></td>
+                        <td><input type="radio" /></td>
+                        <td><i class="bi bi-flag"></i></td>
+                        <td><a href="/Mail/Details/@email.Id">@email.From</a></td>
+                        <td>@email.Subject</td>
+                        <td>@email.Date</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /.card -->
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#refreshData').click(function (e) {
+                e.preventDefault();
+                $('#loading').show(); // إظهار علامة الانتظار
+                $.ajax({
+                    url: '@Url.Action("RefreshData", "Mail")',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#emailTable').html(data);
+                        $('#loading').hide(); // إخفاء علامة الانتظار
+                    },
+                    error: function (xhr, status, error) {
+                        console.log('Error: ' + error);
+                        $('#loading').hide(); // إخفاء علامة الانتظار في حال حدوث خطأ
+                    }
+                });
+            });
+        });
+    </script>
+}

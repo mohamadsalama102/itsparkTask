@@ -1,0 +1,24 @@
+﻿@model itsparkTask.Models.EmailViewModels.EmailViewModel;
+@{ViewData["Title"] = "Email Details";}
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>@Model.Subject</h3>          
+            <h6 class="card-subtitle mb-2 text-muted">Date: @Model.Date</h6>
+
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">From: @Model.From</h5>
+            <br />
+            <h5 class="card-title">To: @Model.OrginalEmail.Payload.Headers.FirstOrDefault(x => x.Name == "Delivered-To")?.Value</h5>
+            <br />
+            <h5 class="card-title">Cc: @Model.OrginalEmail.Payload.Headers.FirstOrDefault(x => x.Name == "Cc")?.Value</h5>
+            <br />
+            <h5 class="card-title">Bcc:@Model.OrginalEmail.Payload.Headers.FirstOrDefault(x => x.Name == "Bcc")?.Value</h5>
+            <br />
+            <div>@Html.Raw(Model.Body)</div>
+           
+        </div>
+    </div>
+</div>

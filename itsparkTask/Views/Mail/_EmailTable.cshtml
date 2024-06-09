@@ -1,0 +1,13 @@
+﻿@model List<itsparkTask.Models.EmailViewModels.EmailViewModel>
+ 
+    @foreach (var email in Model)
+    {
+        <tr>
+            <td><input type="checkbox" /></td>
+            <td><input type="radio" /></td>
+            <td><i class="bi bi-flag"></i></td>
+            <td><a href="/Mail/Details/@email.Id">@email.From</a></td>
+            <td>@email.Subject</td>
+            <td>@email.Date</td>
+        </tr>
+    } 

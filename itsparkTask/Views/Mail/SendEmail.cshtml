@@ -1,0 +1,77 @@
+﻿@model itsparkTask.Models.EmailViewModels.SendEmailViewModel
+@{ ViewData["Title"] = "Send Email"; }
+
+<!--begin::Quick Example-->
+<div class="card card-primary card-outline mb-4">
+    <!--begin::Header-->
+    <div class="card-header">
+        <div class="card-title">
+            <button type="button" class="btn btn-primary" onclick="history.back()">Back</button>
+        </div>
+        <div class="button-group flex-fill">
+        </div>
+    </div>
+    <!--end::Header--> <!--begin::Form-->
+    <form asp-action="SendEmail" method="post" enctype="multipart/form-data">
+        <!--begin::Body-->
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>  
+            <div   class="text-danger mb-3">@ViewBag.Error</div>  
+            <div class="mb-3">
+                <input placeholder="To:" asp-for="To" type="email" class="form-control" />
+                <span asp-validation-for="To" class="text-danger"></span>
+                <br>
+
+                <input placeholder="Cc:" asp-for="Cc" class="form-control" />
+                <br>
+
+                <input placeholder="Bcc:" asp-for="Bcc" class="form-control" />
+                <br>
+
+                <input placeholder="Subject:" asp-for="Subject" type="text" class="form-control" />
+                <span asp-validation-for="Subject" class="text-danger"></span>
+                <br>
+
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="inputGroupFile02" />
+                </div>
+
+                <textarea id="editor" asp-for="Body" class="form-control"></textarea>
+                <span asp-validation-for="Body" class="text-danger"></span>
+            </div>
+            <!--end::Body--> <!--begin::Footer-->
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Send</button>
+            </div>
+            <!--end::Footer-->
+        </div>
+    </form>
+    <!--end::Form-->
+</div>
+<!--end::Quick Example-->
+
+<script src="https://cdn.ckeditor.com/ckeditor5/34.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#editor'))
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+
+<style>
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-title {
+        flex: 1;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px; /* لتحديد المسافة بين الزرين */
+    }
+</style>
