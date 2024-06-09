@@ -1,0 +1,58 @@
+﻿@using Microsoft.AspNetCore.Builder
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Options
+
+@inject IViewLocalizer Localizer
+@inject IOptions<RequestLocalizationOptions> LocOptions
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var cultureItems = LocOptions.Value.SupportedUICultures
+        .Select(c => new SelectListItem { Value = c.Name, Text = c.DisplayName }).ToList();
+
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}";
+}
+
+<form id="selectLanguage" asp-controller="Home" style="margin-top:14px;"      asp-action="SetLanguage" asp-route-returnUrl="@returnUrl"      method="post" class="form-horizontal" role="form">
+    @if (requestCulture!=null)
+    {
+        <input type="hidden" name="currentCulture" value="@requestCulture.RequestCulture.UICulture.Name" />
+    } 
+    <label asp-for="@requestCulture.RequestCulture.UICulture.Name"> <i class="fa fa-language" style="color:#ffffff;"></i></label>
+    <select name="culture" onchange="this.form.submit();"  asp-for="@requestCulture.RequestCulture.UICulture.Name" asp-items="cultureItems" 
+    style=" border: none; padding:3px 5px; outline :none; border-radius :5px; font-weight :bold;"></select>
+</form>
+<script>
+    function changeLanguage(select) {
+        var selectedCulture = select.value;
+        select.form.submit();
+        document.getElementById('html').setAttribute('dir', getDirectionForCulture(selectedCulture));
+    }
+    @* onchange="changeLanguage(this);" *@
+    function getDirectionForCulture(culture) {
+        // Add logic to determine the direction based on the selected culture
+        // For example, you can check if the culture is RTL (right-to-left)
+        // and return 'rtl' in that case, otherwise return 'ltr'.
+        // Modify this logic based on your specific requirements.
+        (culture.toLowerCase());
+        // Placeholder logic (update as needed)
+        return culture.toLowerCase() === 'ar' ? 'rtl' : 'ltr';
+    }
+    function getCookieValue(cookieName) {
+        const cookies = document.cookie.split('; ');
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].split('=');
+            const name = cookie[0];
+            const value = cookie[1];
+
+            if (name === cookieName) {
+                return decodeURIComponent(value);
+            }
+        }
+
+        return null; // Return null if the cookie with the given name is not found
+    }
+</script> 

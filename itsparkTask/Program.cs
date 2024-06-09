@@ -4,8 +4,12 @@ using itsparkTask.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,10 +45,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnCreatingTicket = context =>
         {
-
             var accessToken = context.AccessToken;
-
-            //then you could store the access token inside the claims and use it later
             var identity = (ClaimsIdentity)context.Principal.Identity;
             identity.AddClaim(new Claim("access_token", accessToken));
             return Task.CompletedTask;
@@ -53,7 +54,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new List<CultureInfo>();
+    foreach (var name in new[] { "en-US", "ar-EG" })
+        supportedCultures.Add(new CultureInfo(name));
+    options.DefaultRequestCulture = new RequestCulture("en-US", "en-US");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
 builder.Services.AddHttpContextAccessor();
+builder.Services
+    .AddMvc()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
+
+builder.Services.AddPortableObjectLocalization(options => options.ResourcesPath = "Resources");
 
 // Configure Gmail service.
 builder.Services.AddScoped<GmailService>(serviceProvider =>
@@ -79,6 +95,8 @@ var app = builder.Build();
 // Redirect HTTP requests to HTTPS.
 app.UseRewriter(new RewriteOptions().AddRedirectToHttpsPermanent());
 
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -95,6 +113,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+
+app.UseRequestLocalization(app.Services.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
 // Enable authentication and authorization.
 app.UseAuthentication();

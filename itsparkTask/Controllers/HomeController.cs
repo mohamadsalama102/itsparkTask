@@ -1,4 +1,6 @@
 ﻿using itsparkTask.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -17,6 +19,19 @@ namespace itsparkTask.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult SetLanguage(string culture, string returnUrl, string currentCulture = "en-US")
+        {
+            returnUrl = returnUrl.Replace(currentCulture, culture).ToString();
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { Expires = System.DateTimeOffset.UtcNow.AddYears(1) }
+            );
+
+            return LocalRedirect(returnUrl);
         }
 
         public IActionResult Privacy()

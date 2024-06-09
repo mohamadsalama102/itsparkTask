@@ -1,4 +1,12 @@
-﻿<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+﻿@{
+    // Get the current culture information
+    var currentCulture = System.Globalization.CultureInfo.CurrentCulture;
+
+    // Get the current language
+    var currentLanguage = currentCulture.TwoLetterISOLanguageName;
+    var sdir = currentLanguage == "ar" ? "rtl" : "ltr";
+}
+<aside dir="@sdir" class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
         <!--begin::Brand Link--> <a href="./index.html" class="brand-link">
