@@ -1,7 +1,7 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using itsparkTask.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Localization;
@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Globalization;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,21 +17,24 @@ var connectionString = builder.Configuration.GetConnectionString("ItSparkTaskCon
 
 builder.Services.AddDbContext<ItSparkTaskContext>(options => options.UseSqlServer(connectionString));
 
-//builder.Services.AddDefaultIdentity<CustomUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ItSparkTaskContext>();
-
+builder.Services.AddDefaultIdentity<CustomUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ItSparkTaskContext>();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // اضبط وقت انتهاء الجلسة حسب الحاجة
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
 // Configure authentication services.
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 
-})
-.AddCookie(options =>
+}).AddCookie(options =>
 {
-    options.LoginPath = "/Account/Login"; // Path to the login page
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 })
 .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
 {
@@ -46,10 +48,11 @@ builder.Services.AddAuthentication(options =>
         OnCreatingTicket = context =>
         {
             var accessToken = context.AccessToken;
-            var identity = (ClaimsIdentity)context.Principal.Identity;
-            identity.AddClaim(new Claim("access_token", accessToken));
-            return Task.CompletedTask;
 
+            var session = context.HttpContext.Session;
+            session.SetString("access_token", accessToken);
+
+            return Task.CompletedTask;
         }
     };
 });
@@ -75,22 +78,28 @@ builder.Services.AddPortableObjectLocalization(options => options.ResourcesPath 
 builder.Services.AddScoped<GmailService>(serviceProvider =>
 {
     var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
-    var user = httpContextAccessor.HttpContext.User;
-    var accessToken = user?.FindFirst("access_token")?.Value;
+    var httpContext = httpContextAccessor.HttpContext;
 
-    if (!string.IsNullOrEmpty(accessToken))
+    if (httpContext != null)
     {
-        var credential = GoogleCredential.FromAccessToken(accessToken);
-        return new GmailService(new Google.Apis.Services.BaseClientService.Initializer
+        var session = httpContext.Session;
+        var accessToken = session.GetString("access_token");
+
+        if (!string.IsNullOrEmpty(accessToken))
         {
-            HttpClientInitializer = credential
-        });
+            var credential = GoogleCredential.FromAccessToken(accessToken);
+            return new GmailService(new Google.Apis.Services.BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential
+            });
+        }
     }
 
     throw new InvalidOperationException("AccessToken not found.");
 });
 
 var app = builder.Build();
+app.UseSession();
 
 // Redirect HTTP requests to HTTPS.
 app.UseRewriter(new RewriteOptions().AddRedirectToHttpsPermanent());
@@ -125,5 +134,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapRazorPages();
 
 app.Run();
